@@ -45,7 +45,6 @@ const registerUser = asyncHandler(async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        token: await generateToken(user._id),
       },
     });
   } else {
@@ -79,10 +78,23 @@ const loginUser = asyncHandler(async (req, res) => {
 
 /**
  * @desc    Get a user profile
- * @route   POST /api/users/getMe
+ * @route   GET /api/users/getMe
  * @access  private
  */
-const getMe = asyncHandler(async (req, res) => {});
+const getMe = asyncHandler(async (req, res) => {
+  const id = req.user.id;
+
+  const user = await User.findById(id);
+
+  res.status(200).json({
+    message: "User profile fetched successfully",
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+    },
+  });
+});
 
 // exporting controllers
 module.exports = {

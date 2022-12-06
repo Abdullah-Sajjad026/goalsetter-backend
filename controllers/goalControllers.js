@@ -9,7 +9,7 @@ const {Goal} = require("../models");
  * @access  private
  */
 const getGoals = asyncHandler(async (req, res) => {
-  const goals = await Goal.find();
+  const goals = await Goal.find({user: req.user.id});
   res.status(200).json({message: "Fetched Successfully", goals});
 });
 
@@ -26,6 +26,7 @@ const createGoal = asyncHandler(async (req, res) => {
 
   const goal = await Goal.create({
     text: req.body.text,
+    user: req.user.id,
   });
 
   res.status(200).json({message: "Goal created successfully", goal});
@@ -69,6 +70,12 @@ const updateGoal = asyncHandler(async (req, res) => {
       throw new Error("Goal not found");
     }
 
+    // only authorized user can update his goal
+    if (goal.user.toString() !== req.user.id.toString()) {
+      res.status(401);
+      throw new Error("User not authorized");
+    }
+
     const updatedGoal = await Goal.findByIdAndUpdate(id, req.body, {new: true});
     res
       .status(200)
@@ -88,12 +95,20 @@ const deleteGoal = asyncHandler(async (req, res) => {
   const id = req.params.id;
 
   if (mongoose.isValidObjectId(id)) {
-    const result = await Goal.findByIdAndDelete(id);
+    const goal = await Goal.findById(id);
 
-    if (!result) {
+    if (!goal) {
       res.status(400);
       throw new Error("No goal exists with the given id");
     }
+
+    // only authorized user can delete his goal
+    if (goal.user.toString() !== req.user.id.toString()) {
+      res.status(401);
+      throw new Error("User not authorized");
+    }
+
+    await goal.remove();
 
     res.status(200).json({message: "Goal deleted successfully", id});
   } else {

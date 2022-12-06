@@ -14,10 +14,16 @@ const protect = asyncHandler(async (req, res, next) => {
     const decoded = await jwt.verify(token, process.env.JWT_SECRET);
 
     // setting a user property on each protected route's request
-    req.user = await User.findById(decoded).select("-password");
+    const user = await User.findById(decoded.id).select("-password");
 
-    // forwarding the request to controller.
-    next();
+    if (user) {
+      req.user = {id: user._id, name: user.name, email: user.email};
+      // forwarding the request to controller.
+      next();
+    } else {
+      res.status(400);
+      throw new Error("No user found.");
+    }
   } else {
     res.status(401);
     throw new Error("Invalid auth header");
