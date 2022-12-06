@@ -45,6 +45,7 @@ const registerUser = asyncHandler(async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        token: await generateToken(user._id),
       },
     });
   } else {
@@ -65,10 +66,13 @@ const loginUser = asyncHandler(async (req, res) => {
 
   if (user && (await bcrypt.compare(password, user.password))) {
     res.status(200).json({
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      token: await generateToken(user._id),
+      message: "User registered successfully.",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        token: await generateToken(user._id),
+      },
     });
   } else {
     res.status(400);
