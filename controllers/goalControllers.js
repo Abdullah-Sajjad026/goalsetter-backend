@@ -1,4 +1,7 @@
 const asyncHandler = require("express-async-handler");
+const mongoose = require("mongoose");
+
+const {Goal} = require("../models");
 
 /*
  * @desc    Get Goals
@@ -6,7 +9,8 @@ const asyncHandler = require("express-async-handler");
  * @access  private
  */
 const getGoals = asyncHandler(async (req, res) => {
-  res.status(200).json({message: "Get all goals"});
+  const goals = await Goal.find();
+  res.status(200).json({message: "Fetched Successfully", goals});
 });
 
 /*
@@ -17,8 +21,14 @@ const getGoals = asyncHandler(async (req, res) => {
 const createGoal = asyncHandler(async (req, res) => {
   if (!req.body.text) {
     res.status(400);
-    throw new Error("Please add a text field.");
+    throw new Error("Please add a text field");
   }
+
+  const goal = await Goal.create({
+    text: req.body.text,
+  });
+
+  res.status(200).json({message: "Goal created successfully", goal});
 });
 
 /*
@@ -28,7 +38,20 @@ const createGoal = asyncHandler(async (req, res) => {
  */
 const getSingleGoal = asyncHandler(async (req, res) => {
   const id = req.params.id;
-  res.status(200).json({message: `Get goal with id ${id}`});
+
+  if (mongoose.isValidObjectId(id)) {
+    const goal = await Goal.findById(id);
+
+    if (!goal) {
+      res.status(400);
+      throw new Error("Goal not found");
+    }
+
+    res.status(200).json({message: `Fetched goal successfully`, goal});
+  } else {
+    res.status(400);
+    throw new Error("Given id for the goal is not correct");
+  }
 });
 
 /*
@@ -38,7 +61,22 @@ const getSingleGoal = asyncHandler(async (req, res) => {
  */
 const updateGoal = asyncHandler(async (req, res) => {
   const id = req.params.id;
-  res.status(200).json({message: `Updated goal with id ${id}`});
+  if (mongoose.isValidObjectId(id)) {
+    const goal = await Goal.findById(id);
+
+    if (!goal) {
+      res.status(400);
+      throw new Error("Goal not found");
+    }
+
+    const updatedGoal = await Goal.findByIdAndUpdate(id, req.body, {new: true});
+    res
+      .status(200)
+      .json({message: "Goal updated successfully", goal: updatedGoal});
+  } else {
+    res.status(400);
+    throw new Error("Given id for goal is not correct");
+  }
 });
 
 /*
@@ -48,7 +86,20 @@ const updateGoal = asyncHandler(async (req, res) => {
  */
 const deleteGoal = asyncHandler(async (req, res) => {
   const id = req.params.id;
-  res.status(200).json({message: `Deleted goal with id ${id}`});
+
+  if (mongoose.isValidObjectId(id)) {
+    const result = await Goal.findByIdAndDelete(id);
+
+    if (!result) {
+      res.status(400);
+      throw new Error("No goal exists with the given id");
+    }
+
+    res.status(200).json({message: "Goal deleted successfully", id});
+  } else {
+    res.status(400);
+    throw new Error("Given id for the goal is not correct");
+  }
 });
 
 module.exports = {getGoals, getSingleGoal, createGoal, updateGoal, deleteGoal};

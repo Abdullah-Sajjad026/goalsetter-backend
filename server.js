@@ -1,14 +1,20 @@
 const express = require("express");
-const {errorHandler} = require("./middlewares");
 const dotenv = require("dotenv").config();
+const colors = require("colors");
+
 const PORT = process.env.PORT || 5000;
 const app = express();
 
+const {errorHandler} = require("./middlewares");
 const {goalRoutes} = require("./routes");
+const {connectToDB} = require("./configs");
 
 // some middlewares
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
+
+// performing some operations before starting server and being able to accpet any requests
+connectToDB();
 
 // logging all incoming requests
 app.use((req, res, next) => {
@@ -23,5 +29,5 @@ app.use("/api/goals", goalRoutes);
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`Server is up and listening at port: ${PORT}`);
+  console.log(`Server is up and listening at port: ${PORT}`.white.bgGreen);
 });
