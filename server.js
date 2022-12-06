@@ -6,7 +6,7 @@ const PORT = process.env.PORT || 5000;
 const app = express();
 
 const {errorHandler} = require("./middlewares");
-const {goalRoutes} = require("./routes");
+const {goalRoutes, userRoutes} = require("./routes");
 const {connectToDB} = require("./configs");
 
 // some middlewares
@@ -24,6 +24,7 @@ app.use((req, res, next) => {
 
 // Routes
 app.use("/api/goals", goalRoutes);
+app.use("/api/users", userRoutes);
 
 // If we throw any error in any controller then this middleware will catch and manipulate it.
 app.use(errorHandler);
